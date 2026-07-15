@@ -2,7 +2,7 @@
 
 This is the practical workflow for turning a script template into a running
 automation script on a NEPI device. For *how scripts work* (scripts_mgr,
-launch/stop rules, monitoring), read `SCRIPT_STRUCTURE.md`.
+launch/stop rules, monitoring), read `SCRIPT_ARCHITECTURE.md`.
 
 Scripts are the fastest NEPI extension point: a single `.py` file copied to
 the device is discovered within a second. No build, no restart.
@@ -96,5 +96,5 @@ launchable script.
 | Command a NEPI device (PTX, camera) on a schedule | node shape + `APP_PATTERNS.md` Section 5 (`Connect*` classes) |
 | One-shot job with arguments | `template_script_task.py` |
 
-Also read the **Gotchas** section at the end of `SCRIPT_STRUCTURE.md` before
+Also read the **Gotchas** section at the end of `SCRIPT_ARCHITECTURE.md` before
 your first deploy.

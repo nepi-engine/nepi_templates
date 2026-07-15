@@ -37,7 +37,9 @@
 
      NEPI_TARGET_USERNAME=${nepihost}
 #    NEPI_SSH_KEY: Private SSH key for SSH/Rsync to target (as applicable)
-     NEPI_SSH_KEY=/home/${USER}/ssh_keys/nepi_engine_default_private_ssh_key
+#    Honor an already-set NEPI_SSH_KEY / NEPI_SSH_KEY_PATH (the nepi env exports
+#    the latter), otherwise fall back to the standard nepi key under ~/.ssh.
+     NEPI_SSH_KEY=${NEPI_SSH_KEY:-${NEPI_SSH_KEY_PATH:-/home/${USER}/.ssh/nepi_default_ssh_key}}
 #    NEPI_TARGET_SCRIPTS_DIR: The scripts folder scripts_mgr watches
      NEPI_TARGET_SCRIPTS_DIR=/mnt/nepi_storage/nepi_scripts
 #######################################################################################################
@@ -83,9 +85,16 @@ fi
 
 
 ## Sync update remote clock if needed
+## sshnhc is a shell function from ~/.nepi_remote_aliases; it is NOT exported, so
+## a child script only sees it if the caller has run `export -f sshnhc`. Guard the
+## call so a missing helper doesn't abort/spam the deploy.
 echo "Syncing remote clock if needed"
 if [ "${NEPI_REMOTE_SETUP}" == "1" ]; then
-  sshnhc
+  if command -v sshnhc >/dev/null 2>&1; then
+    sshnhc
+  else
+    echo "  Skipping clock sync: 'sshnhc' not defined in this shell (source ~/.nepi_remote_aliases or 'export -f sshnhc' to enable)"
+  fi
 fi
 
 

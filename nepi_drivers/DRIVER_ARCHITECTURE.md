@@ -1,4 +1,4 @@
-# NEPI Driver Structure — How Drivers Work & How to Write One
+# NEPI Driver Architecture - How Drivers Work & How to Write One
 
 This folder holds a **complete, copy-paste driver template for each NEPI device
 type**. Every template is a working skeleton in the real house style, with the
@@ -9,7 +9,7 @@ template, rename it, deploy it), see **`GETTING_STARTED.md`**.
 
 ```
 nepi_drivers/
-├── DRIVER_STRUCTURE.md      ← you are here (architecture reference)
+├── DRIVER_ARCHITECTURE.md      ← you are here (architecture reference)
 ├── GETTING_STARTED.md       ← create + deploy workflow
 ├── deploy_nepi_drivers.sh   ← deploys template drivers to the target src tree (all types, or pass categories)
 ├── idx_template/            ← Imaging / camera      (LAUNCH discovery + separate driver file)

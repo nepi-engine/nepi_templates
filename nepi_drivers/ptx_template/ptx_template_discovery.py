@@ -20,7 +20,7 @@
 # ---------------------------------------------------------------------------
 # Same "CALL" discovery contract as the LSX template (drivers_mgr instantiates
 # this class with no args and calls discoveryFunction() each cycle). See
-# DRIVER_STRUCTURE.md and lsx_template/ for the fully-annotated walkthrough;
+# DRIVER_ARCHITECTURE.md and lsx_template/ for the fully-annotated walkthrough;
 # comments here focus on what differs for a pan-tilt device.
 ##############################################################################
 

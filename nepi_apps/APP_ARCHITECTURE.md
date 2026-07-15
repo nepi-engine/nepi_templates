@@ -1,4 +1,4 @@
-# NEPI App Structure — How Apps Work & How to Write One
+# NEPI App Architecture - How Apps Work & How to Write One
 
 This folder holds a **complete, copy-paste NEPI app template**
 (`nepi_app_template/`) plus the deploy script. This document explains the
@@ -8,7 +8,7 @@ does. For the hands-on workflow (copy, rename, deploy), see
 
 ```
 nepi_apps/
-├── APP_STRUCTURE.md         ← you are here (architecture reference)
+├── APP_ARCHITECTURE.md         ← you are here (architecture reference)
 ├── APP_PATTERNS.md          ← add-on patterns with real code excerpts
 ├── GETTING_STARTED.md       ← create + deploy workflow
 ├── deploy_nepi_apps.sh      ← deploys app package folders to the target src tree

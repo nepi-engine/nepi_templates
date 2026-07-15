@@ -1,6 +1,6 @@
 # NEPI App Add-On Patterns — Real Code for Each Capability
 
-Companion to `APP_STRUCTURE.md` Section 3. Every app shares the same
+Companion to `APP_ARCHITECTURE.md` Section 3. Every app shares the same
 `NodeClassIF` skeleton (the template); what makes your app *do* something is
 which of these patterns you compose inside it. Each section below shows the
 actual code from the shipped app that does it best, trimmed to the essentials,

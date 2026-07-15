@@ -25,7 +25,7 @@
 # exit code as "errored out", so return codes are your success/fail report
 # in the RUI Scripts manager.
 #
-# Rules of the road (see SCRIPT_STRUCTURE.md for the full list):
+# Rules of the road (see SCRIPT_ARCHITECTURE.md for the full list):
 #   * scripts_mgr executes this file DIRECTLY, so the shebang line picks the
 #     interpreter. Keep it.
 #   * print() output lands in the script's log file at

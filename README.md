@@ -2,7 +2,7 @@
 
 Copy-paste starting points for extending a NEPI device. Each top-level folder
 matches an extension point of the NEPI engine and contains working, tested
-template code plus two docs: a `*_STRUCTURE.md` explaining how that part of
+template code plus two docs: a `*_ARCHITECTURE.md` explaining how that part of
 the system works, and a `GETTING_STARTED.md` with the practical
 create/deploy workflow.
 
@@ -15,13 +15,13 @@ nepi_templates/
 │   ├── npx_template/             #   navigation / position devices
 │   ├── rbx_template/             #   robots / autopilots
 │   ├── deploy_nepi_drivers.sh
-│   ├── DRIVER_STRUCTURE.md
+│   ├── DRIVER_ARCHITECTURE.md
 │   └── GETTING_STARTED.md
 │
 ├── nepi_apps/                    # full apps (node + config + RUI page)
 │   ├── nepi_app_template/        #   complete catkin app package
 │   ├── deploy_nepi_apps.sh
-│   ├── APP_STRUCTURE.md
+│   ├── APP_ARCHITECTURE.md
 │   ├── APP_PATTERNS.md           #   add-on patterns with real code excerpts
 │   └── GETTING_STARTED.md
 │
@@ -29,7 +29,7 @@ nepi_templates/
     ├── template_script_node.py   #   long-running script (runs until stopped)
     ├── template_script_task.py   #   run-once script (does a job, exits)
     ├── deploy_nepi_scripts.sh
-    ├── SCRIPT_STRUCTURE.md
+    ├── SCRIPT_ARCHITECTURE.md
     └── GETTING_STARTED.md
 ```
 
@@ -69,6 +69,6 @@ custom RUI page or custom message types.
    second of landing on the device.
 
 Each `GETTING_STARTED.md` expands these steps for its template type, and
-each `*_STRUCTURE.md` explains the machinery underneath (managers,
+each `*_ARCHITECTURE.md` explains the machinery underneath (managers,
 discovery, interfaces, gotchas). Read the Gotchas section of the relevant
-structure doc before your first deploy.
+architecture doc before your first deploy.

@@ -23,7 +23,7 @@
 #   Copy this whole lsx_template/ folder, rename every "template"/"Template"
 #   token to your device, and fill in the TODO markers.
 #
-# DISCOVERY MODEL: "CALL"  (see DRIVER_STRUCTURE.md)
+# DISCOVERY MODEL: "CALL"  (see DRIVER_ARCHITECTURE.md)
 #   drivers_mgr imports this class, instantiates it ONCE with no arguments,
 #   and then calls discoveryFunction(...) on every poll cycle (~1-3 s).
 #   Therefore:
@@ -60,7 +60,7 @@ FILE_TYPE = 'DISCOVERY'
 
 class LsxTemplateDiscovery:
 
-    # ---- backoff / retry bookkeeping (see DRIVER_STRUCTURE.md > Retry & backoff)
+    # ---- backoff / retry bookkeeping (see DRIVER_ARCHITECTURE.md > Retry & backoff)
     NODE_LOAD_TIME_SEC = 10          # min seconds between relaunch attempts per device
     launch_time_dict = dict()        # launch_key -> last launch time
     retry = True

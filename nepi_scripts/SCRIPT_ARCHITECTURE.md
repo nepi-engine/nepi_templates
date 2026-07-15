@@ -10,7 +10,7 @@ nepi_scripts/
 ├── template_script_node.py   <- long-running script (full NEPI node, runs until stopped)
 ├── template_script_task.py   <- run-once script (does a job, exits with a return code)
 ├── deploy_nepi_scripts.sh    <- copies scripts to the device scripts folder
-├── SCRIPT_STRUCTURE.md       <- this file
+├── SCRIPT_ARCHITECTURE.md       <- this file
 └── GETTING_STARTED.md        <- practical workflow
 ```
 

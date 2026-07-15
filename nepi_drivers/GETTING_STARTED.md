@@ -3,7 +3,7 @@
 This is the practical workflow for turning one of the templates in this folder
 into a real driver and getting it onto a NEPI device. For *how drivers work*
 (discovery models, the launch handshake, the interface-class contract), read
-`DRIVER_STRUCTURE.md`.
+`DRIVER_ARCHITECTURE.md`.
 
 ---
 
@@ -12,12 +12,38 @@ into a real driver and getting it onto a NEPI device. For *how drivers work*
 1. **Copy the template folder** matching your device type (e.g. `idx_template/`)
    into your own repo/location, **along with `deploy_nepi_drivers.sh`**.
    Keep the folder named `<cat>_template/` and sitting next to the script —
-   that is where the deploy script looks for it.
-2. **Rename** every `template` / `Template` token to your device across all
-   files — file names, `pkg_name`, `PKG_NAME`, and the class names. Keep the
+   that is where the deploy script looks for it. `setup_new_driver.sh` rides
+   along inside the folder.
+2. **Rename everything with `setup_new_driver.sh`** (recommended). Edit the
+   EDIT-THESE block at the top of `<cat>_template/setup_new_driver.sh`
+   (`DRIVER_NAME`, `DISPLAY_NAME`, `DESCRIPTION`, and optional `CLASS_BASE`),
+   then run it from inside the folder:
+
+   ```bash
+   cd idx_template
+   ./setup_new_driver.sh --dry-run   # preview the rename plan
+   ./setup_new_driver.sh             # do it (renames the files + tokens)
+   ```
+
+   It auto-detects the category from the folder name and renames every
+   `<cat>_template_*` file plus the `pkg_name`/`PKG_NAME`, class names, and the
+   matching `NODE_DICT`/`DRIVER_DICT`/`DISCOVERY_DICT` yaml entries together, so
+   they stay in lock-step. `DRIVER_NAME` (snake_case, e.g. `deepsea_sealite`)
+   becomes the file prefix + `pkg_name`; set `CLASS_BASE` (e.g. `Sealite`) for
+   shorter class names. The **folder is left named `<cat>_template/`** on
+   purpose (that is what the deploy script globs), and comments that reference
+   the sibling templates are left intact. Delete the script once you have run
+   it.
+
+   <details><summary>Or rename by hand — the token checklist</summary>
+
+   Rename every `template` / `Template` token to your device across all files:
+   file names, `pkg_name`, `PKG_NAME`, and the class names. Keep the
    `NODE_DICT`/`DRIVER_DICT`/`DISCOVERY_DICT` `file_name`/`class_name` entries in
    the yaml matching the real files/classes **exactly** (mismatches are a common
    silent failure).
+
+   </details>
 3. **Fill the `TODO:` markers:**
    - *discovery* — your enumeration + a real `checkForDevice` handshake, and the
      `DEVICE_DICT` fields your node needs.
@@ -43,7 +69,7 @@ ${NEPI_TARGET_SRC_DIR}/nepi_engine_ws/src/nepi_drivers/<cat>_drivers/
 ```
 
 (Drivers must live **flat** in `<cat>_drivers/` — not in per-driver subfolders.
-See `DRIVER_STRUCTURE.md` Section 7 for why.)
+See `DRIVER_ARCHITECTURE.md` Section 7 for why.)
 
 Usage:
 
@@ -88,5 +114,5 @@ when a device node comes up.
 | Serial IMU (vendor ROS driver) | `npx_drivers/npx_microstrain_*` |
 | Autopilot / vehicle | `rbx_drivers/rbx_ardupilot_*` |
 
-Also read the **Gotchas** section at the end of `DRIVER_STRUCTURE.md` before
+Also read the **Gotchas** section at the end of `DRIVER_ARCHITECTURE.md` before
 your first bench test.
