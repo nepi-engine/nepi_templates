@@ -1,0 +1,15 @@
+APP_DICT:
+  display_name: NPX Connect App
+  description: NPX Connect Example
+  pkg_name: nepi_app_npx_connect
+  group_name: DEVICE
+  config_file: app_npx_connect.yaml
+  app_file: npx_connect_app_node.py
+  node_name: app_npx_connect
+  license_type: 3-clause BSD
+  license_link: https://opensource.org/licenses/BSD-3-Clause
+RUI_DICT:
+  rui_files:
+  - NepiAppNPXConnect.js
+  rui_main_file: NepiAppNPXConnect.js
+  rui_main_class: NepiAppNPXConnect

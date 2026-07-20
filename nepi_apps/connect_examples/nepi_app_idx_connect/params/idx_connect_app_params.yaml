@@ -1,0 +1,15 @@
+APP_DICT:
+  display_name: IDX Connect App
+  description: IDX Connect Example
+  pkg_name: nepi_app_idx_connect
+  group_name: DEVICE
+  config_file: app_idx_connect.yaml
+  app_file: idx_connect_app_node.py
+  node_name: app_idx_connect
+  license_type: 3-clause BSD
+  license_link: https://opensource.org/licenses/BSD-3-Clause
+RUI_DICT:
+  rui_files:
+  - NepiAppIDXConnect.js
+  rui_main_file: NepiAppIDXConnect.js
+  rui_main_class: NepiAppIDXConnect
