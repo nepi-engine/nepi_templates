@@ -1,0 +1,15 @@
+APP_DICT:
+  display_name: Motor Connect App
+  description: Motor Connect Example
+  pkg_name: nepi_app_motor_connect
+  group_name: DEVICE
+  config_file: app_motor_connect.yaml
+  app_file: motor_connect_app_node.py
+  node_name: app_motor_connect
+  license_type: 3-clause BSD
+  license_link: https://opensource.org/licenses/BSD-3-Clause
+RUI_DICT:
+  rui_files:
+  - NepiAppMotorConnect.js
+  rui_main_file: NepiAppMotorConnect.js
+  rui_main_class: NepiAppMotorConnect
