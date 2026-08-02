@@ -9,20 +9,21 @@
 ##
 
 #######################################################################################################
-# deploy_nepi_apps.sh [app_folder ...]
+# deploy_nepi_drivers.sh [cat ...]
 #
-# Deploys NEPI app package folders to the correct place in the target's
-# nepi_engine_ws source tree. With no arguments it deploys ALL nepi_app_*
-# folders sitting next to this script; pass folder names to deploy a subset:
-#     ./deploy_nepi_apps.sh nepi_app_template
+# Deploys NEPI template driver files to the correct place in the target's
+# nepi_engine_ws source tree. With no arguments it deploys ALL driver types;
+# pass one or more categories to deploy just those, e.g.:
+#     ./deploy_nepi_drivers.sh idx
+#     ./deploy_nepi_drivers.sh idx ptx
 #
-# Unlike drivers (which are flattened into a shared folder), each app is a
-# complete catkin package and is synced AS A FOLDER into:
+# NEPI drivers are NOT per-driver folders on the target -- each category's
+# .py and .yaml files must land FLAT inside:
 #
-#     <src>/nepi_engine_ws/src/nepi_apps/<app_folder>/
+#     <src>/nepi_engine_ws/src/nepi_drivers/<cat>_drivers/
 #
-# The workspace build then installs its params/api/rui files to the places
-# apps_mgr and the RUI expect (see APP_ARCHITECTURE.md Section on install).
+# (drivers_mgr scans the installed copies of those folders; the build installs
+#  <cat>_drivers/*.py and *.yaml wholesale -- see DRIVER_ARCHITECTURE.md Section 7)
 #
 # The script requires the following environment variable be set
 #    NEPI_REMOTE_SETUP: Indicates whether running from development host or directly on target
@@ -47,18 +48,25 @@
 
 REPO_FOLDER=$(cd -P "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)
 
-APPS_TARGET_PATH=${NEPI_TARGET_SRC_DIR}/nepi_engine_ws/src/nepi_apps
+ALL_DRIVER_CATS="idx lsx ptx npx rbx svx"
 
-# App folders from args, or every nepi_app_* folder next to this script
+# Categories from args, or all of them
 if [ "$#" -gt 0 ]; then
-  APP_FOLDERS="$@"
+  DRIVER_CATS="$@"
 else
-  APP_FOLDERS=$(cd "${REPO_FOLDER}" && ls -d nepi_app_*/ 2>/dev/null | tr -d '/')
+  DRIVER_CATS=${ALL_DRIVER_CATS}
 fi
 
-if [ -z "${APP_FOLDERS}" ]; then
-  echo "No nepi_app_* folders found next to this script"
-  exit 1
+
+# Set NEPI folder variables if not configured by nepi aliases bash script
+if [[ ! -v NEPI_USER ]]; then
+    NEPI_USER=nepi
+fi
+if [[ ! -v NEPI_HOME ]]; then
+    NEPI_HOME=/home/${NEPI_USER}
+fi
+if [[ ! -v NEPI_STORAGE ]]; then
+   NEPI_STORAGE=/mnt/nepi_storage
 fi
 
 
@@ -101,28 +109,63 @@ if [ "${NEPI_REMOTE_SETUP}" == "1" ]; then
 fi
 
 
+# Only .py and .yaml belong in the driver folders (matches the CMake install pattern).
 # NOTE: filters MUST be a quoted array -- an unquoted "*" in a string variable
 # gets glob-expanded by the shell into extra rsync source arguments.
-RSYNC_FILTERS=(--exclude '.git' --exclude '.gitmodules' --exclude '__pycache__' --exclude '*.pyc')
+RSYNC_FILTERS=(--exclude '.git' --exclude '.gitmodules' --exclude '__pycache__'
+               --include '*.py' --include '*.yaml' --exclude '*')
 echo "Using rsync filters: ${RSYNC_FILTERS[*]}"
 
-for APP_FOLDER in ${APP_FOLDERS}; do
+for DRIVER_CAT in ${DRIVER_CATS}; do
 
-  APP_SOURCE_PATH=${REPO_FOLDER}/${APP_FOLDER}
+  DRIVER_SOURCE_PATH=${REPO_FOLDER}/${DRIVER_CAT}_drivers
+  DRIVER_TARGET_PATH=${NEPI_TARGET_SRC_DIR}/nepi_engine_ws/src/nepi_drivers/${DRIVER_CAT}_drivers
 
-  if [ ! -d "${APP_SOURCE_PATH}" ]; then
-    echo "Skipping ${APP_FOLDER}: source folder not found: ${APP_SOURCE_PATH}"
+  if [ ! -d "${DRIVER_SOURCE_PATH}" ]; then
+    echo "Skipping ${DRIVER_CAT}: source folder not found: ${DRIVER_SOURCE_PATH}"
     continue
   fi
 
-  echo "Syncing app ${APP_FOLDER} from ${APP_SOURCE_PATH} to ${APPS_TARGET_PATH}/${APP_FOLDER}"
+  echo ""
+  echo "--------------------------------------------"
+  echo "DEPLOYING BUILD UPDATES"
+  echo ""
+  echo "Syncing ${DRIVER_CAT} drivers from ${DRIVER_SOURCE_PATH} to ${DRIVER_TARGET_PATH}"
 
   if [ "${NEPI_REMOTE_SETUP}" == "0" ]; then
-    rsync -avrh "${RSYNC_FILTERS[@]}" "${APP_SOURCE_PATH}/" "${APPS_TARGET_PATH}/${APP_FOLDER}/"
+    rsync -avrh "${RSYNC_FILTERS[@]}" "${DRIVER_SOURCE_PATH}/" "${DRIVER_TARGET_PATH}/"
 
   elif [ "${NEPI_REMOTE_SETUP}" == "1" ]; then
-    rsync -avzhe "ssh -i ${NEPI_SSH_KEY} -o StrictHostKeyChecking=no" "${RSYNC_FILTERS[@]}" "${APP_SOURCE_PATH}/" "${NEPI_TARGET_USERNAME}@${NEPI_TARGET_IP}:${APPS_TARGET_PATH}/${APP_FOLDER}/"
+    rsync -avzhe "ssh -i ${NEPI_SSH_KEY} -o StrictHostKeyChecking=no" "${RSYNC_FILTERS[@]}" "${DRIVER_SOURCE_PATH}/" "${NEPI_TARGET_USERNAME}@${NEPI_TARGET_IP}:${DRIVER_TARGET_PATH}/"
 
   fi
+
+SOURCE_PATH=${DRIVER_SOURCE_PATH}
+DEST_PATH=/opt/nepi/nepi_engine/lib/nepi_drivers
+
+RSYNC_EXCLUDES=" --exclude .git --exclude .gitmodules"
+#echo "Excluding ${RSYNC_EXCLUDES}"
+
+echo ""
+echo "--------------------------------------------"
+echo "DEPLOYING LIVE UPDATES"
+echo ""
+echo "Syncing App ${APP_NAME} from ${SOURCE_PATH} to NEPI Live Folders at:" 
+echo "Destination Path ${DEST_PATH}"
+echo ""
+rsync -avzhe "ssh -i ${NEPI_SSH_KEY} -o StrictHostKeyChecking=no -p 2222" ${RSYNC_EXCLUDES} ${SOURCE_PATH}/* ${nepi_user_live}@${NEPI_TARGET_IP}:${DEST_PATH}/ 2> /dev/null
+echo ""
+if [[ $? -ne 0 ]]; then
+  if [ "${NEPI_REMOTE_SETUP}" == "0" ]; then
+    local_host_ip="localhost"
+  elif [ "${NEPI_REMOTE_SETUP}" == "1" ]; then
+    local_host_ip=$NEPI_TARGET_IP
+  fi
+  echo "Failed connect to a running NEPI container on host: ${local_host_ip}"
+  echo "Live Updates Failed"
+else
+  echo "Live Updates Deployed"
+fi
+
 
 done
