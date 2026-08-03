@@ -1,0 +1,15 @@
+APP_DICT:
+  display_name: RBX Connect App
+  description: RBX Connect Example
+  pkg_name: nepi_app_rbx_connect
+  group_name: DEVICE
+  config_file: app_rbx_connect.yaml
+  app_file: rbx_connect_app_node.py
+  node_name: app_rbx_connect
+  license_type: 3-clause BSD
+  license_link: https://opensource.org/licenses/BSD-3-Clause
+RUI_DICT:
+  rui_files:
+  - NepiAppRbxConnect.js
+  rui_main_file: NepiAppRbxConnect.js
+  rui_main_class: NepiAppRbxConnect
