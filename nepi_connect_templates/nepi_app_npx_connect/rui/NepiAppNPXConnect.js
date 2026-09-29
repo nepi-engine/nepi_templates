@@ -23,6 +23,8 @@ import { observer, inject } from "mobx-react"
 
 import { Columns, Column } from "./Columns"
 
+import NepiIFNavPose from "./Nepi_IF_NavPose"
+
 import NepiIFConnectNPX from "./Nepi_IF_ConnectNPX"
 
 @inject("ros")
@@ -32,10 +34,14 @@ import NepiIFConnectNPX from "./Nepi_IF_ConnectNPX"
 //
 // This is a minimal "connect example": the app node runs a ConnectNPXDeviceIF
 // which owns the <app>/npx_connect connect namespace (ConnectIFStatus selector
-// state plus the select_topic subscriber). All of the selector, data, and
-// controls rendering is handled by the reusable Nepi_IF_ConnectNPX component,
-// which subscribes to that connect namespace and to the selected device's
-// DeviceNPXStatus. This page just resolves the connect namespace and renders it.
+// state plus the select_topic subscriber). The page is laid out like the
+// NepiDeviceNPX device page - navpose viewer on the left, selection and device
+// panels stacked on the right - with the device selector, data, and controls
+// all rendered by the reusable Nepi_IF_ConnectNPX component instead of the
+// store's device list. Nepi_IF_NPX-Controls also brings the Device Settings and
+// Advanced Settings panels with it, so this page owns nothing but the navpose viewer.
+// It subscribes to the same ConnectIFStatus only to resolve the selected
+// device topic for that viewer.
 class NepiAppNPXConnect extends Component {
 
   constructor(props) {
@@ -44,11 +50,24 @@ class NepiAppNPXConnect extends Component {
     this.state = {
       appName: "app_npx_connect",
       connectName: "npx_connect",
+
+      // Connect namespace (<app>/npx_connect) the status listener is pointed at
+      namespace: null,
+      connect_status_msg: null,
+      connectStatusListener: null,
+
+      // Selected device topic (<device>/npx), sourced from ConnectIFStatus
+      selected_topic: 'None',
     }
 
     this.getBaseNamespace = this.getBaseNamespace.bind(this)
     this.getAppNamespace = this.getAppNamespace.bind(this)
     this.getConnectNamespace = this.getConnectNamespace.bind(this)
+
+    this.updateConnectStatusListener = this.updateConnectStatusListener.bind(this)
+    this.connectStatusListener = this.connectStatusListener.bind(this)
+
+    this.renderNavPose = this.renderNavPose.bind(this)
   }
 
   getBaseNamespace() {
@@ -77,25 +96,114 @@ class NepiAppNPXConnect extends Component {
     return null
   }
 
-  render() {
-    const connectNamespace = this.getConnectNamespace()
-    const make_section = (this.props.make_section !== undefined) ? this.props.make_section : true
+  componentDidMount() {
+    this.updateConnectStatusListener()
+  }
+
+  // Lifecycle method called when the component updates.
+  // Re-point the connect listener when the connect namespace resolves or changes.
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    const namespace = this.getConnectNamespace()
+    if (namespace !== this.state.namespace) {
+      this.updateConnectStatusListener()
+    }
+  }
+
+  // Lifecycle method called just before the component unmounts.
+  // Used to tear down the connect status listener.
+  componentWillUnmount() {
+    if (this.state.connectStatusListener) {
+      this.state.connectStatusListener.unsubscribe()
+    }
+    this.setState({ connectStatusListener: null })
+  }
+
+  // Function for configuring and subscribing to the connect namespace status
+  // topic (<app>/npx_connect/status), message type ConnectIFStatus.
+  updateConnectStatusListener() {
+    const namespace = this.getConnectNamespace()
+    if (this.state.connectStatusListener != null) {
+      this.state.connectStatusListener.unsubscribe()
+      this.setState({ connectStatusListener: null, connect_status_msg: null })
+    }
+    if (namespace != null && namespace !== 'None') {
+      var connectStatusListener = this.props.ros.setupStatusListener(
+        namespace + '/status',
+        "nepi_interfaces/ConnectIFStatus",
+        this.connectStatusListener
+      )
+      this.setState({ connectStatusListener: connectStatusListener })
+    }
+    this.setState({ namespace: namespace })
+  }
+
+  // Callback for ConnectIFStatus messages. Tracks the connected device topic so
+  // the image viewer re-points when the connection changes.
+  connectStatusListener(message) {
+    this.setState({ connect_status_msg: message })
+    if (message.selected_topic !== this.state.selected_topic) {
+      this.setState({ selected_topic: message.selected_topic })
+    }
+  }
+
+  renderNavPose() {
+    const namespace = (this.state.selected_topic !== null) ? this.state.selected_topic : 'None'
 
     return (
+      <React.Fragment>
+
+        <NepiIFNavPose
+          navposeNamespace={namespace + '/navpose'}
+          read_only={true}
+        />
+
+      </React.Fragment>
+    )
+  }
+
+  render() {
+    const connectNamespace = this.getConnectNamespace()
+    const namespace = (this.state.selected_topic !== null) ? this.state.selected_topic : 'None'
+    const device_selected = (namespace !== 'None')
+
+    return (
+
       <Columns>
         <Column>
 
-          <NepiIFConnectNPX
-            namespace={connectNamespace}
-            title={"NPX Connect"}
-            show_selector={true}
-            show_data={true}
-            show_controls={true}
-            make_section={make_section}
-          />
+          <div style={{ display: 'flex' }}>
+
+            <div style={{ width: "75%" }}>
+
+              {(device_selected === true) ?
+                this.renderNavPose()
+                : null}
+
+            </div>
+
+            <div style={{ width: '2%' }}>
+              {}
+            </div>
+
+            <div style={{ width: "23%" }}>
+
+              <NepiIFConnectNPX
+                namespace={connectNamespace}
+                show_selector={true}
+                show_data={true}
+                show_controls={true}
+                show_controls_option={false}
+                make_section={true}
+                title={"NPX Connect"}
+              />
+
+            </div>
+
+          </div>
 
         </Column>
       </Columns>
+
     )
   }
 }

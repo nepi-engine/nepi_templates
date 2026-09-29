@@ -1,0 +1,23 @@
+{
+	"folders": [
+		{
+			"path": "../../../../nepi_engine_ws"
+		},
+		{
+			"path": "../../../../customer_ocean_aero"
+		},
+		{
+			"path": "../../.."
+		},
+		{
+			"path": "../../../../first_robotics"
+		},
+		{
+			"path": "../../../../Documents/depth_map"
+		},
+		{
+			"path": "../../../../nepi_drones"
+		}
+	],
+	"settings": {}
+}

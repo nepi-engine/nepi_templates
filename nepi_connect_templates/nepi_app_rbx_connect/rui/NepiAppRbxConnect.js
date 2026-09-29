@@ -23,19 +23,25 @@ import { observer, inject } from "mobx-react"
 
 import { Columns, Column } from "./Columns"
 
+import NepiIFImageViewer from "./Nepi_IF_ImageViewer"
+
 import NepiIFConnectRBX from "./Nepi_IF_ConnectRBX"
 
 @inject("ros")
 @observer
 
-// RbxConnect Application page.
+// RBXConnect Application page.
 //
 // This is a minimal "connect example": the app node runs a ConnectRBXDeviceIF
 // which owns the <app>/rbx_connect connect namespace (ConnectIFStatus selector
-// state plus the select_topic subscriber). All of the selector, data, and
-// controls rendering is handled by the reusable Nepi_IF_ConnectRBX component,
-// which subscribes to that connect namespace and to the selected device's
-// DeviceRBXStatus. This page just resolves the connect namespace and renders it.
+// state plus the select_topic subscriber). The page is laid out like the
+// NepiDeviceRBX device page - image viewer on the left, selection and device
+// panels stacked on the right - with the device selector, data, and controls
+// all rendered by the reusable Nepi_IF_ConnectRBX component instead of the
+// store's device list. Nepi_IF_RBX-Controls also brings the Device Settings and
+// Advanced Settings panels with it, so this page owns nothing but the image viewer.
+// It subscribes to the same ConnectIFStatus only to resolve the selected
+// device topic for that viewer.
 class NepiAppRbxConnect extends Component {
 
   constructor(props) {
@@ -44,11 +50,24 @@ class NepiAppRbxConnect extends Component {
     this.state = {
       appName: "app_rbx_connect",
       connectName: "rbx_connect",
+
+      // Connect namespace (<app>/rbx_connect) the status listener is pointed at
+      namespace: null,
+      connect_status_msg: null,
+      connectStatusListener: null,
+
+      // Selected device topic (<device>/rbx), sourced from ConnectIFStatus
+      selected_topic: 'None',
     }
 
     this.getBaseNamespace = this.getBaseNamespace.bind(this)
     this.getAppNamespace = this.getAppNamespace.bind(this)
     this.getConnectNamespace = this.getConnectNamespace.bind(this)
+
+    this.updateConnectStatusListener = this.updateConnectStatusListener.bind(this)
+    this.connectStatusListener = this.connectStatusListener.bind(this)
+
+    this.renderImageViewer = this.renderImageViewer.bind(this)
   }
 
   getBaseNamespace() {
@@ -77,25 +96,111 @@ class NepiAppRbxConnect extends Component {
     return null
   }
 
+  componentDidMount() {
+    this.updateConnectStatusListener()
+  }
+
+  // Lifecycle method called when the component updates.
+  // Re-point the connect listener when the connect namespace resolves or changes.
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    const namespace = this.getConnectNamespace()
+    if (namespace !== this.state.namespace) {
+      this.updateConnectStatusListener()
+    }
+  }
+
+  // Lifecycle method called just before the component unmounts.
+  // Used to tear down the connect status listener.
+  componentWillUnmount() {
+    if (this.state.connectStatusListener) {
+      this.state.connectStatusListener.unsubscribe()
+    }
+    this.setState({ connectStatusListener: null })
+  }
+
+  // Function for configuring and subscribing to the connect namespace status
+  // topic (<app>/rbx_connect/status), message type ConnectIFStatus.
+  updateConnectStatusListener() {
+    const namespace = this.getConnectNamespace()
+    if (this.state.connectStatusListener != null) {
+      this.state.connectStatusListener.unsubscribe()
+      this.setState({ connectStatusListener: null, connect_status_msg: null })
+    }
+    if (namespace != null && namespace !== 'None') {
+      var connectStatusListener = this.props.ros.setupStatusListener(
+        namespace + '/status',
+        "nepi_interfaces/ConnectIFStatus",
+        this.connectStatusListener
+      )
+      this.setState({ connectStatusListener: connectStatusListener })
+    }
+    this.setState({ namespace: namespace })
+  }
+
+  // Callback for ConnectIFStatus messages. Tracks the connected device topic so
+  // the image viewer re-points when the connection changes.
+  connectStatusListener(message) {
+    this.setState({ connect_status_msg: message })
+    if (message.selected_topic !== this.state.selected_topic) {
+      this.setState({ selected_topic: message.selected_topic })
+    }
+  }
+
+  renderImageViewer() {
+    return (
+      <React.Fragment>
+
+        <NepiIFImageViewer
+          id="rbxImageViewer"
+        />
+
+      </React.Fragment>
+    )
+  }
+
   render() {
     const connectNamespace = this.getConnectNamespace()
-    const make_section = (this.props.make_section !== undefined) ? this.props.make_section : true
+    const namespace = (this.state.selected_topic !== null) ? this.state.selected_topic : 'None'
+    const device_selected = (namespace !== 'None')
 
     return (
+
       <Columns>
         <Column>
 
-          <NepiIFConnectRBX
-            namespace={connectNamespace}
-            title={"RBX Connect"}
-            show_selector={true}
-            show_data={true}
-            show_controls={true}
-            make_section={make_section}
-          />
+          <div style={{ display: 'flex' }}>
+
+            <div style={{ width: "75%" }}>
+
+              {(device_selected === true) ?
+                this.renderImageViewer()
+                : null}
+
+            </div>
+
+            <div style={{ width: '2%' }}>
+              {}
+            </div>
+
+            <div style={{ width: "23%" }}>
+
+              <NepiIFConnectRBX
+                namespace={connectNamespace}
+                show_selector={true}
+                show_data={true}
+                show_controls={true}
+                show_controls_option={false}
+                make_section={true}
+                title={"RBX Connect"}
+              />
+
+            </div>
+
+          </div>
 
         </Column>
       </Columns>
+
     )
   }
 }

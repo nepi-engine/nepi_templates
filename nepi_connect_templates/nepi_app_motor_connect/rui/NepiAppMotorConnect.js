@@ -32,10 +32,17 @@ import NepiIFConnectMotor from "./Nepi_IF_ConnectMotor"
 //
 // This is a minimal "connect example": the app node runs a ConnectMotorsDeviceIF
 // which owns the <app>/motor_connect connect namespace (ConnectIFStatus selector
-// state plus the select_topic subscriber). All of the selector, data, and
-// controls rendering is handled by the reusable Nepi_IF_ConnectMotor component,
-// which subscribes to that connect namespace and to the selected device's
-// the device MotorsStatus. This page just resolves the connect namespace and renders it.
+// state plus the select_topic subscriber). The page is laid out like the
+// NepiAppIDXConnect page - a wide left column and the device panels stacked in a
+// narrow right column - with the device selector, data, and controls all
+// rendered by the reusable Nepi_IF_ConnectMotor component.
+// Nepi_IF_Motor-Controls also brings the Device Settings and Advanced Settings
+// panels with it, so this page owns nothing itself.
+//
+// There is no motor device page and no viewer for a motor device, so the left
+// column has no content to host. It is kept only so this page matches the layout
+// of its sibling connect examples; collapse it if a wider device panel reads
+// better for a given deployment.
 class NepiAppMotorConnect extends Component {
 
   constructor(props) {
@@ -79,23 +86,41 @@ class NepiAppMotorConnect extends Component {
 
   render() {
     const connectNamespace = this.getConnectNamespace()
-    const make_section = (this.props.make_section !== undefined) ? this.props.make_section : true
 
     return (
+
       <Columns>
         <Column>
 
-          <NepiIFConnectMotor
-            namespace={connectNamespace}
-            title={"Motor Connect"}
-            show_selector={true}
-            show_data={true}
-            show_controls={true}
-            make_section={make_section}
-          />
+          <div style={{ display: 'flex' }}>
+
+            <div style={{ width: "75%" }}>
+              {}
+            </div>
+
+            <div style={{ width: '2%' }}>
+              {}
+            </div>
+
+            <div style={{ width: "23%" }}>
+
+              <NepiIFConnectMotor
+                namespace={connectNamespace}
+                show_selector={true}
+                show_data={true}
+                show_controls={true}
+                show_controls_option={false}
+                make_section={true}
+                title={"Motor Connect"}
+              />
+
+            </div>
+
+          </div>
 
         </Column>
       </Columns>
+
     )
   }
 }
